@@ -1,2 +1,3 @@
 x=input("Enter your name")
-print("Hii {} welcome to club".format(x))
+y=input('Enter your friend name')
+print("Hii {} and {} welcome to club".format(y,x))
