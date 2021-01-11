@@ -1,11 +1,34 @@
-x=["ak","bk","lk"]
-y=["a","b","c"]
-user_name=input("Enter name:\n")
-if user_name in x:
-    password=input("enter password:\n")
-    if password in y:
-        print("Login Successfully")
-    else:
-        print("enter a vaild password")
-else:
-    print("enter a vaild username")
+name=['ak','bk','lk']
+password=['a','b','c']
+start=input("login()/sign_in()")
+def choose():
+    if start==login():
+       print(login())
+    elif start==sign_in():
+        print(sign_in())
+    
+
+def sign_in():  
+    n=input("enter name:\n")
+    while n not in name:
+          print("enter a valid name")
+          n=input()
+    m=input("enter password:\n")
+    while m not in password:
+          print("enter a vaild password")
+          m=input()
+    print("Acess Granted")
+
+
+
+def login():
+    n=input("Enter a  name:\n")
+    name.append(n) 
+    m=input("Enter a password:\n")
+    password.append(m)
+    print(name)
+    print(password)
+    sign_in()
+
+
+login()
