@@ -1,14 +1,17 @@
 name=['ak','bk','lk']
 password=['a','b','c']
-start=input("login()/sign_in()")
+print("IF LOGIN ENTER l ")
+print("IF SIGN_UP ENTER s ")
+start=input("login(l)/sign_up(s):\n")
+
 def choose():
-    if start=="sign_in()":
-        return sign_in()
-    elif start in "login()":
+    if start=="s":
+        return sign_up()
+    elif start in "l":
         return login()
     
 
-def sign_in():  
+def login():  
     n=input("enter name:\n")
     while n not in name:
           print("enter a valid name")
@@ -21,7 +24,7 @@ def sign_in():
           
 
 
-def login():
+def sign_up():
     n=input("Enter a  name:\n")
     name.append(n) 
     m=input("Enter a password:\n")
