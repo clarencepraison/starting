@@ -1,72 +1,92 @@
 import random
-name=['ak','bk','lk']
-password=['a','b','c']
+
+name = ['ak', 'bk', 'lk']
+password = ['a', 'b', 'c']
 print("IF LOGIN ENTER l ")
 print("IF SIGN_UP ENTER s ")
-start=input("login(l)/sign_up(s):\n")
+
 
 def choose():
     while True:
-        if start=="s":
-            print (sign_up())
+        start = input("login(l)/sign_up(s):\n")
+
+        if start == "s":
+            print(sign_up())
             break
-        elif start== "l":
-            print (login())
-            break
+        elif start == "l":
+            print(login())
+        elif start !="l" and "s":
+            print("enter a valid key")
+            continue
+        break
+
+
 def login():
-    n=input("enter name:\n")
+    n = input("enter name:\n")
     while n not in name:
         print("enter a valid name")
-        n=input()
-    x=[]
-    m=input("enter passowrd:\n")
-    while m  not in password:
-        print("enter a valid password")
-        m=input()
+        n = input()
+    x = []
+    m = input("enter passowrd:\n")
+    while m not in password:
+        print("Enter a valid password:\n")
+        m = input()
         x.append("m")
-        print(x)
-        if len(x)==2:
-          r=input("FORGET PASSWORD(yes/no):\n")
-          if r=="yes":
-            print(otp())
-            break
-          elif r=="no":
-            m=input()
-          else:
-             print("enter a vaild key")
-             r=input("FORGET PASSWORD(yes/no):\n")
+        if len(x) == 2:
+            r = input("FORGET PASSWORD(yes/no):\n")
+            if r == "yes":
+                print(otp())
+                break
+            elif r == "no":
+                m=input()
+
+            else:
+                print("enter a vaild key")
+                r = input("FORGET PASSWORD(yes/no):\n")
     print("Acess Granted")
     exit()
 
-def  sign_up():
-    n=input("Enter a name:\n")
+    while m in password:
+        print("Access Granted")
+        break
+
+
+def sign_up():
+    n = input("Enter a name:\n")
     name.append(n)
-    m=input("Enter a password:\n")
+    m = input("Enter a password:\n")
     password.append(m)
     print("NOW SIGN_IN YOUR ACCOUNT")
     login()
-    
+
+
 def otp():
-    l=random.randint(1000,9999)
-    print("OTP:",l)
-    y=int(input("enter the four digit number:\n"))
-    while y != l:
-        print("enter the correct OTP number")
-        y=input()
-    while y==l:
-        print(reset_password())
-        break
+    while True:
+         l = random.randint(1000, 9999)
+         print("OTP:", l)
+         y = int(input("enter the four digit number:\n"))
+         if y != l:
+            print("enter the correct OTP number")
+            continue
+         elif y == l:
+             print(reset_password())
+             break
+
+
 def reset_password():
-    m = input("enter password:\n")
-    password_ = input("confirmation password:\n")
-    while m not in password_:
-        print("does not match")
-        m=input("enter password:\n")
+    while True:
+        m = input("enter password:\n")
         password_ = input("confirmation password:\n")
-    print("reset password successfully")
+        if m != password_:
+           print("does not match")
+           continue
+        print("reset password successfully")
+        break
     while m in password_:
-         password.append(password_)
-         login()
-         break
+        password.append(password_)
+        login()
+        break
+
+
 choose()
 
