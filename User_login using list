@@ -33,16 +33,17 @@ def login():
         m = input()
         x.append("m")
         if len(x) == 2:
-            r = input("FORGET PASSWORD(yes/no):\n")
-            if r == "yes":
-                print(otp())
-                break
-            elif r == "no":
-                m=input()
+            while True:
+                 r = input("FORGET PASSWORD(yes/no):\n")
+                 if r == "yes":
+                    print(otp())
+                    break
+                 elif r == "no":
+                    m=input()
+                 elif r!="yes" and "no":
+                    print("enter a vaild key")
+                    continue
 
-            else:
-                print("enter a vaild key")
-                r = input("FORGET PASSWORD(yes/no):\n")
     print("Acess Granted")
     exit()
 
@@ -63,14 +64,20 @@ def sign_up():
 def otp():
     while True:
          l = random.randint(1000, 9999)
-         print("OTP:", l)
-         y = int(input("enter the four digit number:\n"))
+         try:
+             print("OTP:", l)
+             y = int(input("enter the four digit number:\n"))
+         except ValueError:
+             print("Error:Enter in integers")
+             continue
+
          if y != l:
             print("enter the correct OTP number")
             continue
+
          elif y == l:
-             print(reset_password())
-             break
+            print(reset_password())
+            break
 
 
 def reset_password():
@@ -89,4 +96,3 @@ def reset_password():
 
 
 choose()
-
