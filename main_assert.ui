@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>769</width>
-    <height>703</height>
+    <height>679</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -134,7 +134,7 @@ color: rgb(0, 0, 127);</string>
    <widget class="QPushButton" name="search">
     <property name="geometry">
      <rect>
-      <x>480</x>
+      <x>500</x>
       <y>70</y>
       <width>75</width>
       <height>23</height>
@@ -179,19 +179,94 @@ color: rgb(0, 0, 127);</string>
      <string notr="true">font: 9pt &quot;Calibri&quot;;</string>
     </property>
    </widget>
+   <widget class="QComboBox" name="comboBox">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>30</y>
+      <width>71</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">font: 75 10pt &quot;Calibri&quot;;</string>
+    </property>
+    <item>
+     <property name="text">
+      <string>SONY</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>SPRITE</string>
+     </property>
+    </item>
+   </widget>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>769</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuADD">
+    <property name="title">
+     <string>Menu</string>
+    </property>
+    <widget class="QMenu" name="menuADD_2">
+     <property name="title">
+      <string>ADD</string>
+     </property>
+     <addaction name="actionSONY"/>
+     <addaction name="separator"/>
+     <addaction name="actionSPRITE"/>
+    </widget>
+    <addaction name="menuADD_2"/>
+   </widget>
+   <addaction name="menuADD"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionNew">
+   <property name="text">
+    <string>New</string>
+   </property>
+  </action>
+  <action name="actionFile">
+   <property name="text">
+    <string>New</string>
+   </property>
+  </action>
+  <action name="actionSONY">
+   <property name="text">
+    <string>SONY</string>
+   </property>
+  </action>
+  <action name="actionSPRITE">
+   <property name="text">
+    <string>SPRITE</string>
+   </property>
+  </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>cancel</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>625</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>644</x>
+     <y>81</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
