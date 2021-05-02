@@ -2,17 +2,14 @@ import sys
 import pyodbc
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QMessageBox, QWidget, QTableWidgetItem,QLineEdit
+from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QMessageBox, QWidget, QTableWidgetItem,QLineEdit, QTableWidget,QHeaderView, QVBoxLayout
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QSortFilterProxyModel
+from PyQt5.QtCore import Qt
+from PyQt5.QtSql import *
+from PyQt5.QtSql import QSqlTableModel
 
-server = '10.209.25.201'
-database = 'AssertDB'
-username = 'sa'
-password = 'devctti@123'
-
-
-class query:
+'''class query:
     def query_s(self):
         self.tableWidget.setRowCount(1000)
         tablerow = 0
@@ -23,66 +20,102 @@ class query:
             self.tableWidget.setItem(tablerow, 3, QtWidgets.QTableWidgetItem(str(row[3])))
             self.tableWidget.setItem(tablerow, 4, QtWidgets.QTableWidgetItem(str(row[4])))
             self.tableWidget.setItem(tablerow, 5, QtWidgets.QTableWidgetItem(row[5]))
-            tablerow += 1
+            tablerow += 1'''
 
-
-class query_ss:
-    def query_sss(self):
+class query:
+    def query_s(self):
         self.tableWidget.setRowCount(0)
         for row_number, row_data in enumerate(self.sqlquery):
             self.tableWidget.insertRow(row_number)
             for column_number, data in enumerate(row_data):
                 self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
 
+class events:
+    def add_data(self):
+        conn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
+                              "Server=DESKTOP-V5JQHLU;"
+                              "Database=Assert;"
+                              "Trusted_Connection=yes;")
 
-class MainWindow(QMainWindow, QWidget, query,query_ss,):
+        cursor = conn.cursor()
+        SERIAL_NO=self.serial_lineEdit.text()
+        DESCRIPTION=self.description_lineEdit.text()
+        VENDOR=self.vendor_lineEdit.text()
+        PROJECT=self.project_lineEdit.text()
+        DATE = str(self.d_dateEdit.text())
+        PRICE = str(self.price_lineEdit.text())
+
+        list=(SERIAL_NO,DESCRIPTION,VENDOR,PROJECT,DATE,PRICE)
+        query='''INSERT INTO Sheet1(Serial_no,Descriptions,Vendor,Project,Invoice_Date,Price) VALUES (?,?,?,?,?,?) '''
+        QMessageBox.about(self,"SUCESS","Data Added Sucessfully!")
+        cursor.execute(query, list)
+        conn.commit()
+
+
+
+
+    def delete_data(self):
+        conn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
+                              "Server=DESKTOP-V5JQHLU;"
+                              "Database=Assert;"
+                              "Trusted_Connection=yes;")
+
+        cursor = conn.cursor()
+        SERIAL_NO = self.serial_lineEdit.text()
+        command = '''DELETE FROM Sheet1 WHERE Serial_no=?'''
+        messageBox = QMessageBox.warning(
+            self,
+            "Warning!",
+            "Do you want to remove the selected contact?",
+            QMessageBox.Ok | QMessageBox.Cancel,
+        )
+
+        if messageBox == QMessageBox.Ok:
+            print(command)
+
+
+        cursor.execute(command,SERIAL_NO)
+        conn.commit()
+
+    def serial_search(self):
+        conn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
+                              "Server=DESKTOP-V5JQHLU;"
+                              "Database=Assert;"
+                              "Trusted_Connection=yes;")
+        cursor = conn.cursor()
+        command = '''SELECT * FROM Sheet1 WHERE Serial_no=?'''
+
+        SERIAL_NO = self.d_lineEdit.text()
+        result = cursor.execute(command, SERIAL_NO)
+        self.tableWidget.setRowCount(0)
+
+        for row_number, row_data in enumerate(result):
+            self.tableWidget.insertRow(row_number)
+            for column_number, data in enumerate(row_data):
+                self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+        conn.commit()
+class MainWindow(QMainWindow, QWidget, query,events):
     def __init__(self):
         super(MainWindow, self).__init__()
         loadUi("main_assert.ui", self)
-        self.actionSony_2.triggered.connect(self.gotosony)
-        self.actionSprite.triggered.connect(self.gotosprite)
-        self.actionExit.triggered.connect(self.gotoexit)
-        self.serial_lineEdit.textChanged.connect(self.serial_no_search())
-        self.setWindowTitle('Assert Details')
+        self.actionSONY.triggered.connect(self.gotosony)
+        self.actionSPRITE.triggered.connect(self.gotosprite)
+        self.actionExit.triggered.connect(self.closeEvent)
+        self.search.clicked.connect(self.serial_search)
+        self.cancel.clicked.connect(self.cancel_)
         self.data()
         self.query_s()
         widget.setFixedWidth(800)
         widget.setFixedHeight(700)
+        widget.setWindowTitle("Assert Details")
         widget.show
 
-
-    def serial_no_search(self):
-
-        conn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
-        cursor = conn.cursor()
-        searchol = ""
-        searchinput = self.serial_lineEdit.text()
-        searchol = self.searchinput.text()
-        search = ("SELECT * FROM Sheet1 WHERE [SERIAL NUMBER]= '+str(searchol)';")
-        data=cursor.execute(search,searchol)
-        row = searchol.fetchone()
-        model = QStandardItemModel(searchol, 6)
-
-        self.tableWidget.setRowCount(0)
-        for row_number, row_data in enumerate(searchol):
-            item=QStandardItem(row_data)
-            model.setItem(row,0,item)
-
-        self.filter_proxy_model = QSortFilterProxyModel()
-        self.filter_proxy_model.setSourceModel(model)
-        self.filter_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
-        self.filter_proxy_model.setFilterKeyColumn(0)
-
-
-
-        table = self.tableWidget()
-        table.setModel(self.filter_proxy_model)
-
-
     def data(self):
-        conn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+        conn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
+                                  "Server=DESKTOP-V5JQHLU;"
+                                  "Database=Assert;"
+                                  "Trusted_Connection=yes;")
+
         cursor = conn.cursor()
         self.sqlquery = cursor.execute('SELECT * FROM Sheet1')
 
@@ -96,15 +129,28 @@ class MainWindow(QMainWindow, QWidget, query,query_ss,):
         widget.addWidget(Sprite)
         widget.setCurrentIndex(widget.currentIndex() + 1)
 
-    def gotoexit(self):
-        sys.exit()
+    def cancel_(self):
+        self.data()
+        self.query_s()
 
 
-class sony(QDialog, query):
+    def closeEvent(self, event):
+        reply = QMessageBox.question(self, 'Window Close', 'Are you sure you want to close the window?',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            event.accept()
+            print('Window closed')
+        else:
+            event.ignore()
+
+class sony(QDialog, query,events):
     def __init__(self):
         super(sony, self).__init__()
         loadUi("add_sony_data.ui", self)
         self.cancel.clicked.connect(self.gotomain)
+        self.add.clicked.connect(self.add_data)
+        self.delete_2.clicked.connect(self.delete_data)
         self.loaddatas()
         self.query_s()
         widget.setFixedWidth(1000)
@@ -112,8 +158,11 @@ class sony(QDialog, query):
         widget.show
 
     def loaddatas(self):
-        conn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+        conn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
+                                  "Server=DESKTOP-V5JQHLU;"
+                                  "Database=Assert;"
+                                  "Trusted_Connection=yes;")
+
         cursor = conn.cursor()
         self.sqlquery = cursor.execute("SELECT * FROM Sheet1 WHERE Project='Sony' ")
 
@@ -123,20 +172,23 @@ class sony(QDialog, query):
         widget.setCurrentIndex(widget.currentIndex() + 1)
 
 
-class sprite(QDialog, query_ss):
+class sprite(QDialog, query):
     def __init__(self):
         super(sprite, self).__init__()
         loadUi("add_sprite_data.ui", self)
         self.cancel.clicked.connect(self.gotomain)
         self.loaddata_s()
-        self.query_sss()
+        self.query_s()
         widget.setFixedWidth(1000)
         widget.setFixedHeight(700)
         widget.show
 
     def loaddata_s(self):
-        conn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+        conn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
+                                  "Server=DESKTOP-V5JQHLU;"
+                                  "Database=Assert;"
+                                  "Trusted_Connection=yes;")
+
         cursor = conn.cursor()
         self.sqlquery = cursor.execute("SELECT * FROM Sheet1 WHERE Project='Sprite' ")
 
@@ -158,3 +210,5 @@ try:
 
 except:
     print("Exiting")
+
+
