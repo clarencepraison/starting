@@ -2,7 +2,7 @@ import sys
 import pyodbc
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QMessageBox, QWidget, QTableWidgetItem,QLineEdit, QTableWidget,QHeaderView, QVBoxLayout
+from PyQt5.QtWidgets import QDialog,QSizePolicy, QApplication, QMainWindow, QMessageBox, QWidget,QSizeGrip, QTableWidgetItem,QLineEdit, QTableWidget,QHeaderView, QVBoxLayout
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QSortFilterProxyModel
 from PyQt5.QtCore import Qt
@@ -31,6 +31,7 @@ class query:
                 self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
 
 class events:
+
     def add_data(self):
         conn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
                               "Server=DESKTOP-V5JQHLU;"
@@ -83,10 +84,12 @@ class events:
                               "Database=Assert;"
                               "Trusted_Connection=yes;")
         cursor = conn.cursor()
-        command = '''SELECT * FROM Sheet1 WHERE Serial_no=?'''
+        command = '''SELECT * FROM Sheet1 WHERE  Serial_no=? or Descriptions=? '''
 
         SERIAL_NO = self.d_lineEdit.text()
-        result = cursor.execute(command, SERIAL_NO)
+        DESCRIPTION=self.v_lineEdit.text()
+
+        result = cursor.execute(command,SERIAL_NO, DESCRIPTION)
         self.tableWidget.setRowCount(0)
 
         for row_number, row_data in enumerate(result):
@@ -100,13 +103,13 @@ class MainWindow(QMainWindow, QWidget, query,events):
         loadUi("main_assert.ui", self)
         self.actionSONY.triggered.connect(self.gotosony)
         self.actionSPRITE.triggered.connect(self.gotosprite)
+        #self.actionUsers.triggered.connect(self.user)
         self.actionExit.triggered.connect(self.closeEvent)
         self.search.clicked.connect(self.serial_search)
         self.cancel.clicked.connect(self.cancel_)
         self.data()
         self.query_s()
-        widget.setFixedWidth(800)
-        widget.setFixedHeight(700)
+        widget.setGeometry(100,100,1000,700)
         widget.setWindowTitle("Assert Details")
         widget.show
 
@@ -129,6 +132,11 @@ class MainWindow(QMainWindow, QWidget, query,events):
         widget.addWidget(Sprite)
         widget.setCurrentIndex(widget.currentIndex() + 1)
 
+    def user(self):
+        User=user_details()
+        widget.addWidget(User)
+        widget.setCurrentIndex(widget.currentIndex() + 1)
+
     def cancel_(self):
         self.data()
         self.query_s()
@@ -144,6 +152,18 @@ class MainWindow(QMainWindow, QWidget, query,events):
         else:
             event.ignore()
 
+class user_details(QDialog):
+    def __init__(self):
+        super(user_details,self).__init__()
+        loadUi("add_data.ui",self)
+        widget.setGeometry(100, 100, 1000, 700)
+        vbox=QVBoxLayout()
+        sizegrip = QSizeGrip(self)
+        vbox.addWidget(sizegrip)
+        widget.setLayout(vbox)
+        widget.show()
+
+
 class sony(QDialog, query,events):
     def __init__(self):
         super(sony, self).__init__()
@@ -153,8 +173,7 @@ class sony(QDialog, query,events):
         self.delete_2.clicked.connect(self.delete_data)
         self.loaddatas()
         self.query_s()
-        widget.setFixedWidth(1000)
-        widget.setFixedHeight(700)
+        widget.setGeometry(100,100,1000,700)
         widget.show
 
     def loaddatas(self):
@@ -179,8 +198,8 @@ class sprite(QDialog, query):
         self.cancel.clicked.connect(self.gotomain)
         self.loaddata_s()
         self.query_s()
-        widget.setFixedWidth(1000)
-        widget.setFixedHeight(700)
+        widget.setGeometry(100,100,1200,700)
+
         widget.show
 
     def loaddata_s(self):
@@ -205,10 +224,14 @@ mainwindow = MainWindow()
 widget.addWidget(mainwindow)
 widget.show()
 
+
 try:
     sys.exit(app.exec_())
 
 except:
     print("Exiting")
+
+
+
 
 
