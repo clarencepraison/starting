@@ -34,47 +34,49 @@ class events:
         self.PRICE = str(self.price_lineEdit.text())
         self.PROJECT = self.project_lineEdit.text()
         self.list = [self.SERIAL_NO, self.DESCRIPTION, self.VENDOR, self.DATE, self.PRICE, self.PROJECT]
-        x=re.findall("[a-z,A-Z]",self.SERIAL_NO)
+        x=re.findall("[a-z,A-Z]",self.SERIAL_NO or self.DESCRIPTION or self.VENDOR)
         if not x:
             QMessageBox.about(self, "ERROR", "Enter any data")
         else:
             conn = pyodbc.connect(
                 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
             cursor = conn.cursor()
-            self.SERIAL_NO = self.serial_lineEdit.text()
-            self.DESCRIPTION = self.description_lineEdit.text()
-            self.VENDOR = self.vendor_lineEdit.text()
-            self.DATE = str(self.received_dateEdit.text())
-            self.PRICE = str(self.price_lineEdit.text())
-            self.PROJECT = self.project_lineEdit.text()
-            self.list = [self.SERIAL_NO, self.DESCRIPTION, self.VENDOR, self.DATE, self.PRICE, self.PROJECT]
             sqlquery_ = '''INSERT INTO Sheet1 (SERIAL_NUMBER,DESCRIPTION,VENDOR,DATE,PRICE,Project) VALUES (?,?,?,?,?,?);'''
             QMessageBox.about(self, "SUCCESS", "Data Added Sucessfully!")
-            cursor.execute(sqlquery_, list)
+            cursor.execute(sqlquery_,self.list)
             conn.commit()
 
     def serial_search(self):
-
         conn = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
         cursor = conn.cursor()
-        command = '''SELECT * FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? '''
 
-        SERIAL_NO = self.serial_lineEdit.text()
-        DESCRIPTION_NO = self.description_lineEdit.text()
-        VENDOR_ = self.vendor_lineEdit.text()
-        DATE_ = self.received_dateEdit.text()
-        x = [SERIAL_NO, DESCRIPTION_NO, VENDOR_, DATE_]
-        result = cursor.execute(command, SERIAL_NO, DESCRIPTION_NO, VENDOR_, DATE_)
-        self.tableWidget.setRowCount(0)
 
-        for row_number, row_data in enumerate(result):
-            self.tableWidget.insertRow(row_number)
-            for column_number, data in enumerate(row_data):
-                self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
-        conn.commit()
+        self.SERIAL_NO = self.serial_lineEdit.text()
+        self.DESCRIPTION_NO = self.description_lineEdit.text()
+        self.VENDOR_ = self.vendor_lineEdit.text()
+        self.DATE_ = self.received_dateEdit.text()
+        self.y = [self.SERIAL_NO, self.DESCRIPTION_NO, self.VENDOR_, self.DATE_]
+        x = re.findall("[a-z,A-Z]", self.SERIAL_NO or self.DESCRIPTION_NO or self.VENDOR_ or self.DATE_)
+        if x :
+            command = '''SELECT * FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? '''
+            if self.y in command:
+                self.result = cursor.execute(command, self.y)
 
-    def delete_data(self):
+                self.tableWidget.setRowCount(0)
+
+                for row_number, row_data in enumerate(self.result):
+                    self.tableWidget.insertRow(row_number)
+                    for column_number, data in enumerate(row_data):
+                        self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+                conn.commit()
+            else:
+                QMessageBox.about(self,"Error","No data Found")
+        else:
+            QMessageBox.about(self,"Error","Enter Any DataFields")
+
+
+def delete_data(self):
         conn = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
 
@@ -117,7 +119,7 @@ class MainWindow(QMainWindow, QWidget, query, events):
         self.search.clicked.connect(self.serial_search)
         self.data()
         self.query_s()
-        widget.setFixedWidth(800)
+        widget.setFixedWidth(1060)
         widget.setFixedHeight(700)
         widget.setWindowTitle("IT Assert")
         widget.show
