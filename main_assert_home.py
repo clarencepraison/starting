@@ -11,6 +11,8 @@ from PyQt5.QtSql import QSqlTableModel
 import re
 
 
+
+
 server = '10.209.25.201'
 database = 'AssertDB'
 username = 'sa'
