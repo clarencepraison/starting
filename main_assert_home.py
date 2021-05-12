@@ -2,16 +2,13 @@ import sys
 import pyodbc
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QMessageBox, QWidget, QTableWidgetItem,QLineEdit, QTableWidget,QHeaderView, QVBoxLayout
+from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QMessageBox, QWidget, QTableWidgetItem, QLineEdit, QTableWidget, QHeaderView, QVBoxLayout
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QSortFilterProxyModel
 from PyQt5.QtCore import Qt
 from PyQt5.QtSql import *
 from PyQt5.QtSql import QSqlTableModel
 import re
-
-
-
 
 server = '10.209.25.201'
 database = 'AssertDB'
@@ -26,6 +23,7 @@ class query:
             self.tableWidget.insertRow(row_number)
             for column_number, data in enumerate(row_data):
                 self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+
 
 class events:
     def add_data(self):
@@ -49,58 +47,94 @@ class events:
             conn.commit()
 
     def serial_search(self):
-
         conn = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
-        cursor = conn.cursor()
-        command = 'SELECT * FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? '
-
+        cursor_ = conn.cursor()
         self.SERIAL_NO = self.serial_lineEdit.text()
-        self.DESCRIPTION_NO=self.description_lineEdit.text()
-        self.VENDOR_=self.vendor_lineEdit.text()
-        self.DATE_=self.received_dateEdit.text()
-        self.y=[self.SERIAL_NO,self.DESCRIPTION_NO,self.VENDOR_,self.DATE_]
-        result = cursor.execute(command,self.y)
+        self.DESCRIPTION_NO = self.description_lineEdit.text()
+        self.VENDOR_ = self.vendor_lineEdit.text()
+        self.DATE_ = self.received_dateEdit.text()
+        self.PRICE_ = self.price_lineEdit.text()
+        self.PROJECT_ = self.project_lineEdit.text()
+        self.y = [self.SERIAL_NO, self.DESCRIPTION_NO, self.VENDOR_, self.DATE_,self.PRICE_,self.PROJECT_]
+        x = re.findall("[a-z,A-Z]", self.SERIAL_NO or self.DESCRIPTION_NO or self.VENDOR_ or self.PROJECT_)
+        y=re.findall("[0-9]",self.DATE_ or self.PRICE_)
+        if x or y:
+            c = ("SELECT count(*) FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? or PRICE=? or Project=?")
+            cursor_.execute(c, self.y)
+            resul = cursor_.fetchall()
+            x_ = (resul[-1][-1])
+            print(x_)
 
-        self.tableWidget.setRowCount(0)
+            if x_ == 0:
+                QMessageBox.about(self, "Error", "No data Found")
 
-        for row_number, row_data in enumerate(result):
-            self.tableWidget.insertRow(row_number)
-            for column_number, data in enumerate(row_data):
-                self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
-        conn.commit()
+            else:
+                command = '''SELECT * FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? or PRICE=? or Project=?'''
+                result = cursor_.execute(command, self.y)
+                self.tableWidget.setRowCount(0)
+                for row_number, row_data in enumerate(result):
+                    self.tableWidget.insertRow(row_number)
+                    for column_number, data in enumerate(row_data):
+                        self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+                conn.commit()
+
+        else:
+            QMessageBox.about(self, "Error", "Enter Any DataFields")
+        conn.close()
 
     def delete_data(self):
         conn = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+        cursor_ = conn.cursor()
+        self.SERIAL_NO = self.serial_lineEdit.text()
+        self.DESCRIPTION_NO = self.description_lineEdit.text()
+        self.VENDOR_ = self.vendor_lineEdit.text()
+        self.DATE_ = self.received_dateEdit.text()
+        self.PRICE_ = self.price_lineEdit.text()
+        self.PROJECT_ = self.project_lineEdit.text()
+        self.y = [self.SERIAL_NO, self.DESCRIPTION_NO, self.VENDOR_, self.DATE_, self.PRICE_, self.PROJECT_]
+        x = re.findall("[a-z,A-Z]", self.SERIAL_NO or self.DESCRIPTION_NO or self.VENDOR_ or self.PROJECT_)
+        y = re.findall("[0-9]", self.PRICE_)
+        if x or y:
+            c = (
+                "SELECT count(*) FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? or PRICE=? or Project=?")
+            cursor_.execute(c, self.y)
+            resul = cursor_.fetchall()
+            x_ = (resul[-1][-1])
+            print(x_)
 
-        cursor = conn.cursor()
-        SERIAL_NO = self.serial_lineEdit.text()
-        command = '''DELETE FROM Sheet1 WHERE SERIAL_NUMBER=?'''
+            if x_ == 0:
+                QMessageBox.about(self, "Error", "No data Found")
 
-        messageBox = QMessageBox.warning(
-            self,
-            "Warning!",
-            "Do you want to remove the selected contact?",
-            QMessageBox.Ok | QMessageBox.Cancel,
-        )
+            else:
 
-        if messageBox == QMessageBox.Ok:
-            print(command)
+                messageBox = QMessageBox.warning(
+                    self,
+                    "Warning!",
+                    "Do you want to remove the selected contact?",
+                    QMessageBox.Ok | QMessageBox.Cancel,
+                )
 
-        cursor.execute(command, SERIAL_NO)
-        conn.commit()
+                if messageBox == QMessageBox.Ok:
+                    command = '''DELETE FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? or PRICE=? or Project=?'''
+                    cursor_.execute(command, self.y)
+                    conn.commit()
+        else:
+            QMessageBox.about(self, "Error", "Action Empty")
+      
+
 
 class Users(QMainWindow):
     def __init__(self):
-        super(Users,self).__init__()
-        loadUi("user_details.ui",self)
+        super(Users, self).__init__()
+        loadUi("user_details.ui", self)
         widget.setFixedWidth(950)
         widget.setFixedHeight(700)
         widget.show
 
 
-class MainWindow(QMainWindow, QWidget, query,events):
+class MainWindow(QMainWindow, QWidget, query, events):
     def __init__(self):
         super(MainWindow, self).__init__()
         loadUi("main_assert.ui", self)
@@ -117,9 +151,9 @@ class MainWindow(QMainWindow, QWidget, query,events):
         widget.setWindowTitle("IT Assert")
         widget.show
 
-
     def data(self):
-        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+        conn = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
         cursor = conn.cursor()
         self.sqlquery = cursor.execute('SELECT * FROM Sheet1')
 
@@ -155,7 +189,8 @@ class MainWindow(QMainWindow, QWidget, query,events):
             event.accept()
             print(exits)
 
-class sony(QMainWindow, query,events):
+
+class sony(QMainWindow, query, events):
     def __init__(self):
         super(sony, self).__init__()
         loadUi("add_sony_data.ui", self)
@@ -168,7 +203,6 @@ class sony(QMainWindow, query,events):
         self.homebutton.clicked.connect(self.gotomain_)
         self.loaddatas()
         self.query_s()
-
 
         widget.setFixedWidth(950)
         widget.setFixedHeight(700)
@@ -190,7 +224,7 @@ class sony(QMainWindow, query,events):
         widget.setCurrentIndex(widget.currentIndex() + 1)
 
 
-class sprite(QMainWindow, query,events):
+class sprite(QMainWindow, query, events):
     def __init__(self):
         super(sprite, self).__init__()
         loadUi("add_sprite_data.ui", self)
@@ -223,10 +257,6 @@ class sprite(QMainWindow, query,events):
         widget.setCurrentIndex(widget.currentIndex() + 1)
 
 
-
-
-
-
 app = QApplication(sys.argv)
 widget = QtWidgets.QStackedWidget()
 
@@ -239,3 +269,5 @@ try:
 
 except:
     print("Exiting")
+
+
