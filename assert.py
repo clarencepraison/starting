@@ -65,7 +65,7 @@ class events:
             QMessageBox.about(self, "SUCCESS", "Data Added Sucessfully!")
             cursor.execute(sqlquery_, self.list_)
             conn.commit()
-    def serial_search(self):
+    def asset_search(self):
         conn = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
         cursor_ = conn.cursor()
@@ -90,6 +90,42 @@ class events:
             else:
                 command = '''SELECT * FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? or PRICE=? or Project=?'''
                 result = cursor_.execute(command, self.y)
+                self.tableWidget.setRowCount(0)
+                for row_number, row_data in enumerate(result):
+                    self.tableWidget.insertRow(row_number)
+                    for column_number, data in enumerate(row_data):
+                        self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+                conn.commit()
+
+        else:
+            QMessageBox.about(self, "Error", "Enter Any DataFields")
+        conn.close()
+
+    def serial_search(self):
+        conn = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+        cursor_ = conn.cursor()
+        self.SERIAL_NO = self.serial_lineEdit.text()
+        self.DESCRIPTION_NO = self.description_lineEdit.text()
+        self.VENDOR_ = self.vendor_lineEdit.text()
+        self.DATE_ = self.received_dateEdit.text()
+        self.PRICE_ = self.price_lineEdit.text()
+        self.PROJECT_ = self.project_lineEdit.text()
+        self.y = [self.SERIAL_NO, self.DESCRIPTION_NO, self.VENDOR_, self.DATE_, self.PRICE_, self.PROJECT_]
+        x = re.findall("[a-z,A-Z]", self.SERIAL_NO or self.DESCRIPTION_NO or self.VENDOR_ or self.PROJECT_)
+        y = re.findall("[0-9]", self.DATE_ or self.PRICE_)
+        if x or y:
+            c = ("SELECT count(*) FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? or PRICE=? or Project=?")
+            cursor_.execute(c, self.y)
+            resul = cursor_.fetchall()
+            x_ = (resul[-1][-1])
+            print(x_)
+            if x_ == 0:
+                QMessageBox.about(self, "Error", "No data Found")
+
+            else:
+                command = '''SELECT Sheet1.SERIAL_NUMBER,Sheet1.DESCRIPTION,Sheet1.VENDOR,Sheet1.DATE,Sheet1.PRICE,Sheet1.Project,user_details.USER_NAME,user_details.ISSUE_DATE,user_details.LOCATION FROM Sheet1 INNER JOIN user_details ON Sheet1.SERIAL_NUMBER=user_details.SERIAL_NO;'''
+                result = cursor_.execute(command)
                 self.tableWidget.setRowCount(0)
                 for row_number, row_data in enumerate(result):
                     self.tableWidget.insertRow(row_number)
@@ -268,7 +304,7 @@ class Assert_details(QMainWindow, query, events):
         loadUi("assert_details.ui", self)
 
         self.add.clicked.connect(self.add_data)
-        self.search.clicked.connect(self.serial_search)
+        self.search.clicked.connect(self.asset_search)
         self.cancel.clicked.connect(self.gotomain)
         self.refreshbutton.clicked.connect(self.gotomain)
         self.delete_2.clicked.connect(self.delete_data)
@@ -294,7 +330,6 @@ class Assert_details(QMainWindow, query, events):
         mainwindow = MainWindow()
         widget.addWidget(mainwindow)
         widget.setCurrentIndex(widget.currentIndex() + 1)
-
 
 class user_details(QMainWindow, query, events):
     def __init__(self):
