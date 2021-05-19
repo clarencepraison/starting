@@ -1,7 +1,7 @@
 import sys
 import pyodbc
 from PyQt5.uic import loadUi
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets,uic
 from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QMessageBox, QWidget, QTableWidgetItem, QLineEdit, \
     QTableWidget, QHeaderView, QVBoxLayout
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
@@ -26,7 +26,46 @@ class query:
                 self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
 
 
+class Actions:
+    def selectionChanged(self):
+        selected_row=self.getSelectedRowid()
+        user_id=self.getSelectionUserId()
+        serial_no=self.tableWidget.item(selected_row,0).text()
+        description = self.tableWidget.item(selected_row, 1).text()
+        vendor=self.tableWidget.item(selected_row, 2).text()
+        date=self.tableWidget.item(selected_row, 3).text()
+        price=self.tableWidget.item(selected_row, 4).text()
+        project=self.tableWidget.item(selected_row, 5).text()
+        self.serial_lineEdit.setText(serial_no)
+        self.description_lineEdit.setText(description)
+        self.vendor_lineEdit.setText(vendor)
+        #str(self.received_dateEdit.setText(date))
+        str(self.price_lineEdit.setText(price))
+        self.project_lineEdit.setText(project)
+
+    def getSelectedRowid(self):
+        return self.tableWidget.currentRow()
+
+    def getSelectionUserId(self):
+        return self.tableWidget.item(self.getSelectedRowid(),0).text()
+
+    def refresh(self):
+
+        self.loaddatas()
+#dlg=uic.loadUi("assert_details.ui")
 class events:
+    def clearData(self):
+        self.tableWidget.clearSelection()
+        while (self.tableWidget.rowCount()>0):
+            self.tableWidget.removeRow(0)
+            self.tableWidget.clearSelection()
+
+    def loaddatas_(self):
+        conn = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+        cursor = conn.cursor()
+        self.sqlquery = cursor.execute("SELECT * FROM Sheet1 ")
+
     def add_data(self):
         self.SERIAL_NO = self.serial_lineEdit.text()
         self.DESCRIPTION = self.description_lineEdit.text()
@@ -46,6 +85,7 @@ class events:
             QMessageBox.about(self, "SUCCESS", "Data Added Sucessfully!")
             cursor.execute(sqlquery_, self.list)
             conn.commit()
+
     def add_user(self):
         self.serial_no=self.serial_lineEdit.text()
         self.description=self.description_lineEdit.text()
@@ -106,16 +146,12 @@ class events:
             'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
         cursor_ = conn.cursor()
         self.SERIAL_NO = self.serial_lineEdit.text()
-        self.DESCRIPTION_NO = self.description_lineEdit.text()
-        self.VENDOR_ = self.vendor_lineEdit.text()
-        self.DATE_ = self.received_dateEdit.text()
-        self.PRICE_ = self.price_lineEdit.text()
-        self.PROJECT_ = self.project_lineEdit.text()
-        self.y = [self.SERIAL_NO, self.DESCRIPTION_NO, self.VENDOR_, self.DATE_, self.PRICE_, self.PROJECT_]
-        x = re.findall("[a-z,A-Z]", self.SERIAL_NO or self.DESCRIPTION_NO or self.VENDOR_ or self.PROJECT_)
-        y = re.findall("[0-9]", self.DATE_ or self.PRICE_)
-        if x or y:
-            c = ("SELECT count(*) FROM Sheet1 WHERE SERIAL_NUMBER=? or DESCRIPTION=? or VENDOR=? or DATE=? or PRICE=? or Project=?")
+        self.y = [self.SERIAL_NO]
+        self.z = [self.SERIAL_NO,self.SERIAL_NO]
+        x = re.findall("[a-z,A-Z]", self.SERIAL_NO )
+
+        if x :
+            c = ("SELECT count(*) FROM Sheet1 WHERE SERIAL_NUMBER=? ")
             cursor_.execute(c, self.y)
             resul = cursor_.fetchall()
             x_ = (resul[-1][-1])
@@ -124,8 +160,8 @@ class events:
                 QMessageBox.about(self, "Error", "No data Found")
 
             else:
-                command = '''SELECT Sheet1.SERIAL_NUMBER,Sheet1.DESCRIPTION,Sheet1.VENDOR,Sheet1.DATE,Sheet1.PRICE,Sheet1.Project,user_details.USER_NAME,user_details.ISSUE_DATE,user_details.LOCATION FROM Sheet1 INNER JOIN user_details ON Sheet1.SERIAL_NUMBER=user_details.SERIAL_NO;'''
-                result = cursor_.execute(command)
+                command = '''SELECT Sheet1.SERIAL_NUMBER,Sheet1.DESCRIPTION,Sheet1.VENDOR,Sheet1.DATE,Sheet1.PRICE,Sheet1.Project,user_details.USER_NAME,user_details.ISSUE_DATE,user_details.LOCATION FROM Sheet1 INNER JOIN user_details ON (Sheet1.SERIAL_NUMBER=?) and (user_details.SERIAL_NO=?);'''
+                result = cursor_.execute(command,self.z)
                 self.tableWidget.setRowCount(0)
                 for row_number, row_data in enumerate(result):
                     self.tableWidget.insertRow(row_number)
@@ -167,11 +203,12 @@ class events:
                     for column_number, data in enumerate(row_data):
                         self.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data)))
                 conn.commit()
+
     def delete_data(self):
         conn = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
         cursor_ = conn.cursor()
-        self.SERIAL_NO = self.serial_lineEdit.text()
+        '''self.SERIAL_NO = self.serial_lineEdit.text()
         self.DESCRIPTION_NO = self.description_lineEdit.text()
         self.VENDOR_ = self.vendor_lineEdit.text()
         self.DATE_ = self.received_dateEdit.text()
@@ -201,11 +238,25 @@ class events:
                 )
 
                 if messageBox == QMessageBox.Ok:
-                    command = '''DELETE FROM Sheet1 WHERE SERIAL_NUMBER=?'''
+                    command = DELETE FROM Sheet1 WHERE SERIAL_NUMBER=?
                     cursor_.execute(command, self.SERIAL_NO)
                     conn.commit()
         else:
-            QMessageBox.about(self, "Error", "Action Empty")
+            QMessageBox.about(self, "Error", "Action Empty")'''
+        id_delete=self.getSelectionUserId()
+        messageBox = QMessageBox.warning(
+            self,
+            "Warning!",
+            "Do you want to remove the selected contact?",
+            QMessageBox.Ok | QMessageBox.Cancel,
+        )
+
+        if messageBox == QMessageBox.Ok:
+            command=("DELETE FROM Sheet1 WHERE SERIAL_NUMBER=?")
+            cursor_.execute(command,id_delete)
+            conn.commit()
+            self.clearData()
+            self.loaddatas_()
 
     def delete_USER_(self):
         conn = pyodbc.connect(
@@ -247,11 +298,35 @@ class events:
         else:
             QMessageBox.about(self, "Error", "Action Empty")
 
+    def update_data(self):
+        self.id_update=self.getSelectionUserId()
+        self.SERIAL_NO = self.serial_lineEdit.text()
+        self.DESCRIPTION = self.description_lineEdit.text()
+        self.VENDOR = self.vendor_lineEdit.text()
+        self.DATE = str(self.received_dateEdit.text())
+        self.PRICE = str(self.price_lineEdit.text())
+        self.PROJECT = self.project_lineEdit.text()
+        self.list = [self.SERIAL_NO, self.DESCRIPTION, self.VENDOR, self.DATE, self.PRICE, self.PROJECT,self.id_update]
+        x = re.findall("[a-z,A-Z]", self.SERIAL_NO or self.DESCRIPTION or self.VENDOR)
+        if not x:
+            QMessageBox.about(self, "ERROR", "Enter any data")
+        else:
+            conn = pyodbc.connect(
+                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+            cursor = conn.cursor()
+            sqlquery_ = '''UPDATE Sheet1 SET SERIAL_NUMBER=?,DESCRIPTION=?,VENDOR=?,DATE=?,PRICE=?,Project=? WHERE SERIAL_NUMBER=?;'''
+            QMessageBox.about(self, "SUCCESS", "Data Added Sucessfully!")
+            cursor.execute(sqlquery_, self.list)
+            conn.commit()
+            self.loaddatas()
+
+
 
 class MainWindow(QMainWindow, QWidget, query, events):
     def __init__(self):
         super(MainWindow, self).__init__()
         loadUi("main_assert.ui", self)
+
         self.actionSony_2.triggered.connect(self.assert_)
         self.actionSprite.triggered.connect(self.user_)
         self.actionExit.triggered.connect(self.closeEvent)
@@ -268,7 +343,7 @@ class MainWindow(QMainWindow, QWidget, query, events):
         conn = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
         cursor = conn.cursor()
-        self.sqlquery = cursor.execute('SELECT * FROM Sheet1')
+        self.sqlquery = cursor.execute('SELECT Sheet1.SERIAL_NUMBER,Sheet1.DESCRIPTION,Sheet1.VENDOR,Sheet1.DATE,Sheet1.PRICE,Sheet1.Project,user_details.USER_NAME,user_details.ISSUE_DATE,user_details.LOCATION FROM Sheet1 INNER JOIN user_details ON Sheet1.SERIAL_NUMBER =user_details.SERIAL_NO;')
 
     def assert_(self):
         Sony = Assert_details()
@@ -284,6 +359,7 @@ class MainWindow(QMainWindow, QWidget, query, events):
         self.data()
         self.query_s()
 
+
     def gotomain_(self):
         mainwindow = MainWindow()
         widget.addWidget(mainwindow)
@@ -298,7 +374,7 @@ class MainWindow(QMainWindow, QWidget, query, events):
             print(exits)
 
 
-class Assert_details(QMainWindow, query, events):
+class Assert_details(QMainWindow, query, events,Actions):
     def __init__(self):
         super(Assert_details, self).__init__()
         loadUi("assert_details.ui", self)
@@ -308,7 +384,9 @@ class Assert_details(QMainWindow, query, events):
         self.cancel.clicked.connect(self.gotomain)
         self.refreshbutton.clicked.connect(self.gotomain)
         self.delete_2.clicked.connect(self.delete_data)
+        self.update.clicked.connect(self.update_data)
         self.homebutton.clicked.connect(self.gotomain_)
+        self.tableWidget.itemSelectionChanged.connect(self.selectionChanged)
         self.loaddatas()
         self.query_s()
 
@@ -326,6 +404,7 @@ class Assert_details(QMainWindow, query, events):
         self.loaddatas()
         self.query_s()
 
+
     def gotomain_(self):
         mainwindow = MainWindow()
         widget.addWidget(mainwindow)
@@ -340,6 +419,7 @@ class user_details(QMainWindow, query, events):
         self.search.clicked.connect(self.search_user)
         self.delete_2.clicked.connect(self.delete_USER_)
         self.cancel.clicked.connect(self.gotomain)
+        self.update.clicked.connect(self.update_data)
         self.refreshbutton.clicked.connect(self.gotomain)
         self.homebutton.clicked.connect(self.gotomain_)
         self.loaddata_s()
